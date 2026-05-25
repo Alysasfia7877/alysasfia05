@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio-Calculus Dashboard: Aquaculture Food Security in Malaysia</title>
+    <!-- Tailwind CSS for sleek UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for smooth data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- KaTeX for beautiful LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+            onload="renderMathInElement(document.body, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        }
+        .card-blur {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="gradient-bg text-slate-100 min-h-screen font-sans">
+
+    <header class="border-b border-slate-800 py-6 px-4 md:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">
+                    SFM: Sustainable Food Security (Malaysia)
+                </span>
+                <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight mt-2 text-white">
+                    Bio-Calculus & Aquaculture Optimization
+                </h1>
+                <p class="text-slate-400 text-sm mt-1">
+                    Applying Derivatives $f'(x)$ to model Nile Tilapia (<span class="italic">Oreochromis niloticus</span>) growth rates in intensive Malaysian aquaculture systems.
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <a href="#problem-statement" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg transition">Read Bio-Context</a>
+                <a href="#math-formulation" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg font-medium transition">View Math Details</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+        
+        <!-- Interactive Dashboard Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Visualizer Card (8 Columns) -->
+            <div class="lg:col-span-8 card-blur rounded-2xl p-6 shadow-2xl flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <span class="w-3 h-3 bg-emerald-500 rounded-full animate-ping"></span>
+                            Interactive Growth Dynamics Graph
+                        </h2>
+                        <span class="text-xs text-slate-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
+                            Click anywhere on the curve to query points
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-300 mb-4">
+                        This model charts the cumulative body weight (grams) of Nile Tilapia over an 180-day production cycle. Toggle the derivative plot to visualize the daily growth rate (g/day).
+                    </p>
+                </div>
+
+                <!-- Canvas Wrapper -->
+                <div class="relative min-h-[300px] md:min-h-[400px] w-full bg-slate-900/40 rounded-xl p-2 border border-slate-800">
+                    <canvas id="growthChart"></canvas>
+                </div>
+
+                <!-- Live Slider & Play Controls -->
+                <div class="mt-6 p-4 bg-slate-900/60 rounded-xl border border-slate-800/80 space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div class="w-full flex-1">
+                            <label for="daySlider" class="flex justify-between text-xs font-semibold text-slate-300 mb-1">
+                                <span>Adjust Production Timeline:</span>
+                                <span class="text-emerald-400 font-bold" id="sliderValDisplay">Day 80</span>
+                            </label>
+                            <input type="range" id="daySlider" min="0" max="180" value="80" 
+                                class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        </div>
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <button id="playBtn" class="flex-1 md:flex-none text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2 px-4 rounded-lg transition flex items-center justify-center gap-1">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play Cycle
+                            </button>
+                            <button id="resetBtn" class="flex-1 md:flex-none text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 px-4 rounded-lg transition">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Calculus Panel (4 Columns) -->
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <!-- Derivative Display Card -->
+                <div class="card-blur rounded-2xl p-6 shadow-2xl border-l-4 border-emerald-500">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Biological Derivative Calculator</h3>
+                    <div class="mt-4">
+                        <span class="text-xs text-slate-400 block">Current Selected Epoch</span>
+                        <span class="text-3xl font-extrabold text-white" id="calcDay">Day 80</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mt-6">
+                        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold">Weight $f(x)$</span>
+                            <div class="text-xl font-bold text-emerald-400 mt-1" id="calcWeight">300.0 g</div>
+                        </div>
+                        <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold">Growth Rate $f'(x)$</span>
+                            <div class="text-xl font-bold text-sky-400 mt-1" id="calcRate">6.00 g/day</div>
+                        </div>
+                    </div>
+
+                    <!-- Layman Explanation Box -->
+                    <div class="mt-6 p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
+                        <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wide flex items-center gap-1">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Layman Biological Meaning:
+                        </h4>
+                        <p id="laymanExplanation" class="text-xs text-slate-300 mt-2 leading-relaxed">
+                            Loading biological analysis...
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feed Conversion & Actionable Management Insights Card -->
+                <div class="card-blur rounded-2xl p-6 shadow-2xl flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Calculus-Driven Decisions</h3>
+                        <p class="text-xs text-slate-400 mt-1">How farmers utilize $f'(x)$ to optimize food security parameters:</p>
+                        
+                        <div class="mt-4 space-y-4">
+                            <div class="flex gap-3 items-start">
+                                <div class="bg-indigo-500/10 p-2 rounded-lg text-indigo-400 text-xs shrink-0">FCR</div>
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-200">Feed Conversion Ratio Optimization</h5>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">When $f'(x)$ is at its peak (Day 80), the metabolic efficiency is maximum. Feed intake must be maximized at this window to achieve optimal conversion.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3 items-start">
+                                <div class="bg-amber-500/10 p-2 rounded-lg text-amber-400 text-xs shrink-0">ROI</div>
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-200">The Diminishing Returns Threshold</h5>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">As $f'(x)$ approaches zero near harvest (Day 150+), every gram of feed costs more than the weight the fish gains. This informs the exact harvest day.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-800">
+                        <div class="flex items-center justify-between text-xs text-slate-500">
+                            <span>Status: Modeling Active</span>
+                            <span class="text-emerald-500">System Balanced</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: The Bioscience Problem & Malaysian Food Security Context -->
+        <section id="problem-statement" class="card-blur rounded-2xl p-6 md:p-8 shadow-xl">
+            <h2 class="text-xl font-bold text-white border-b border-slate-800 pb-3 mb-4">
+                The Bioscience Context: Aquaculture Security in Malaysia
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-300 leading-relaxed">
+                <div>
+                    <p class="mb-4">
+                        With Malaysia relying heavily on imports for food and animal feeds, local intensive aquaculture serves as a crucial sector under the <strong>National Agrofood Policy 2.0 (DAN 2.0)</strong> to establish long-term food sovereignty. <strong>Nile Tilapia (Oreochromis niloticus)</strong> is a highly productive, high-protein freshwater species widely farmed across Malaysian freshwater basins.
+                    </p>
+                    <p>
+                        To ensure economic feasibility and resource sustainability, farmers must avoid overfeeding. Overfeeding not only increases operational expenses (feed accounts for up to 60-70% of total fish farming costs) but also results in high ammonia concentrations from excess feed decay, which threatens fish health. 
+                    </p>
+                </div>
+                <div>
+                    <p class="mb-4">
+                        This is where <strong>calculus</strong> becomes an indispensable management tool. Instead of observing static final weights, bioscience researchers analyze the <strong>first derivative of the growth curve</strong>, $f'(x)$, representing the rate of change of fish weight per day ($g/day$).
+                    </p>
+                    <p class="bg-slate-900/60 p-4 rounded-xl border border-slate-800 text-xs">
+                        <strong class="text-emerald-400">Sustainable Food Security Application:</strong> By monitoring exactly when the growth rate ($f'(x)$) starts to drop, aquaculture engineers can transition feeding regimes from growth-focused high-protein diets to maintenance feeds, minimizing nutrient runoff, safeguarding water systems, and optimizing the Harvest Window.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Mathematical Formulation -->
+        <section id="math-formulation" class="card-blur rounded-2xl p-6 md:p-8 shadow-xl">
+            <h2 class="text-xl font-bold text-white border-b border-slate-800 pb-3 mb-4">
+                Mathematical Modeling: The Logistic Growth Curve
+            </h2>
+            <div class="space-y-6 text-sm text-slate-300">
+                <p>
+                    Biological growth is rarely linear. It typically follows a sigmoidal (S-shaped) pattern modeled accurately by the <strong>Verhulst-Pearl Logistic Growth Equation</strong>. In this web application, we map the wet weight $W$ (in grams) as a function of time $t$ (in days):
+                </p>
+
+                <!-- Formulas Display -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-900/70 p-6 rounded-xl border border-slate-800 space-y-3">
+                        <h3 class="text-xs uppercase font-semibold text-slate-400 tracking-wider">The Primary Growth Function $f(x)$</h3>
+                        <div class="text-center py-4 text-xl md:text-2xl text-emerald-400">
+                            $$f(x) = \frac{L}{1 + e^{-k(x - x_0)}}$$
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Where: <br>
+                            • $L = 600\text{ g}$: The theoretical maximum carrying weight (harvest potential) under Malaysian conditions.<br>
+                            • $k = 0.04$: The specific growth rate coefficient.<br>
+                            • $x_0 = 80\text{ days}$: The inflection point, signifying the day of maximum biological acceleration.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-900/70 p-6 rounded-xl border border-slate-800 space-y-3">
+                        <h3 class="text-xs uppercase font-semibold text-slate-400 tracking-wider">The First Derivative $f'(x)$ (Growth Rate)</h3>
+                        <div class="text-center py-4 text-xl md:text-2xl text-sky-400">
+                            $$f'(x) = \frac{L \cdot k \cdot e^{-k(x - x_0)}}{(1 + e^{-k(x - x_0)})^2}$$
+                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Derived via the quotient rule and chain rule. In biology, we can express the derivative in terms of the function itself:
+                            $$f'(x) = k \cdot f(x) \cdot \left(1 - \frac{f(x)}{L}\right)$$
+                            This demonstrates that growth rate is proportional to both current size and the remaining growth capacity.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: References & Web Sources -->
+        <section class="card-blur rounded-2xl p-6 md:p-8 shadow-xl">
+            <h2 class="text-xl font-bold text-white border-b border-slate-800 pb-3 mb-4">
+                Scientific References & Datasets
+            </h2>
+            <p class="text-sm text-slate-300 mb-4">
+                The parameters chosen in this calculus simulation (growth coefficient, stocking size, and harvest plateau thresholds) are aligned with realistic aquaculture indices validated by Malaysian institutions:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <a href="https://www.dof.gov.my/en/resources/" target="_blank" rel="noopener noreferrer" 
+                   class="p-4 bg-slate-900/40 rounded-xl border border-slate-800 hover:border-emerald-500/50 transition block">
+                    <h4 class="font-bold text-slate-200">Department of Fisheries (DOF) Malaysia Aquaculture Statistics</h4>
+                    <p class="text-slate-400 mt-1">Primary statistics for freshwater aquaculture yields, stocking metrics, and standard marketable weights (500-600g targets) in Peninsular Malaysia.</p>
+                </a>
+                <a href="https://scienceweb.upm.edu.my/" target="_blank" rel="noopener noreferrer" 
+                   class="p-4 bg-slate-900/40 rounded-xl border border-slate-800 hover:border-emerald-500/50 transition block">
+                    <h4 class="font-bold text-slate-200">Universiti Putra Malaysia (UPM) Agriculture Trials</h4>
+                    <p class="text-slate-400 mt-1">Research papers focusing on intensive culture of Oreochromis niloticus utilizing high-efficiency biofloc technology and recirculating water schemes.</p>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t border-slate-800 mt-12 py-8 px-4 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto">
+            <p>© 2026 Malaysia Sustainable Food Security Scholars (SFM). Developed for interactive academic instruction.</p>
+            <p class="mt-1">All calculus simulations are calculated dynamically based on real-world Verhulst-Pearl equations.</p>
+        </div>
+    </footer>
+
+    <!-- Core App Logic & Charts Configuration -->
+    <script>
+        // Parameters for Nile Tilapia logistic growth curve
+        const L = 600;      // Maximum asymptotic weight (grams)
+        const k = 0.04;     // Logistic Growth Rate Constant
+        const x0 = 80;      // Inflection point (days)
+
+        // Mathematical Function: Weight f(x)
+        function f(x) {
+            return L / (1 + Math.exp(-k * (x - x0)));
+        }
+
+        // Mathematical Function: Derivative f'(x)
+        function fPrime(x) {
+            const expTerm = Math.exp(-k * (x - x0));
+            return (L * k * expTerm) / Math.pow(1 + expTerm, 2);
+        }
+
+        // Generate Dataset Array
+        const days = [];
+        const weights = [];
+        const growthRates = [];
+
+        for (let day = 0; day <= 180; day++) {
+            days.push(day);
+            weights.push(Number(f(day).toFixed(2)));
+            growthRates.push(Number(fPrime(day).toFixed(2)));
+        }
+
+        // UI Element Selectors
+        const daySlider = document.getElementById('daySlider');
+        const sliderValDisplay = document.getElementById('sliderValDisplay');
+        const calcDay = document.getElementById('calcDay');
+        const calcWeight = document.getElementById('calcWeight');
+        const calcRate = document.getElementById('calcRate');
+        const laymanExplanation = document.getElementById('laymanExplanation');
+        const playBtn = document.getElementById('playBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Textual bio-narratives mapping depending on current growth stage (derivative state)
+        function getLaymanExplanation(day, weight, rate) {
+            if (day < 40) {
+                return `Early Fingerling Phase. At Day ${day}, the Tilapia weigh only ${weight.toFixed(1)}g. The daily growth rate is extremely small (${rate.toFixed(2)}g/day) as their digestive systems are still adapting. High-protein pre-starter meals are required here, but maintain small batches to avoid bio-filtration load.`;
+            } else if (day >= 40 && day < 70) {
+                return `Acceleration Phase. The fish are entering their exponential growth track. Today, they are gaining ${rate.toFixed(2)} grams per day. The derivative is rapidly rising, meaning feed efficiency is climbing. Maintain strong oxygenation levels in the ponds.`;
+            } else if (day >= 70 && day <= 90) {
+                return `Inflection Peak! Around Day 80, the growth rate reaches its absolute metabolic maximum (${rate.toFixed(2)}g/day). The derivative f'(x) is at its peak. This means the biological machine is operating at 100% capacity. Feed conversion ratio (FCR) is highly cost-effective right now.`;
+            } else if (day > 90 && day < 130) {
+                return `Decelerating Growth. The Tilapia weight is still rising (currently ${weight.toFixed(1)}g), but the rate of growth is slowing down (${rate.toFixed(2)}g/day). The derivative is falling. This occurs as fish approach sexual maturity and dedicate more energy to metabolic maintenance rather than pure muscle growth.`;
+            } else {
+                return `Plateau Harvest Window. At Day ${day}, weight sits at ${weight.toFixed(1)}g, close to our target market threshold of 500-600g. However, the daily growth rate is very low (${rate.toFixed(2)}g/day). Keeping the fish longer is economically unsustainable, as feed costs will exceed weight-gain returns. Time to harvest!`;
+            }
+        }
+
+        // Update dashboard values
+        function updateDashboard(day) {
+            const weightVal = f(day);
+            const rateVal = fPrime(day);
+
+            // Update DOM Elements
+            daySlider.value = day;
+            sliderValDisplay.innerText = `Day ${day}`;
+            calcDay.innerText = `Day ${day}`;
+            calcWeight.innerText = `${weightVal.toFixed(1)} g`;
+            calcRate.innerText = `${rateVal.toFixed(2)} g/day`;
+            laymanExplanation.innerHTML = getLaymanExplanation(day, weightVal, rateVal);
+
+            // Update Vertical Indicator Line on Chart
+            updateChartIndicator(day);
+        }
+
+        // Setup ChartJS
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        
+        // Custom vertical line plugin to draw selected point indicator
+        const verticalLinePlugin = {
+            id: 'verticalLine',
+            afterDraw: chart => {
+                if (chart.tooltip?._active?.length) {
+                    // Handled by chart hover/active points
+                }
+                const activeIndex = daySlider.value;
+                const metaWeight = chart.getDatasetMeta(0);
+                const xPixel = chart.scales.x.getPixelForValue(activeIndex);
+                const yAxis = chart.scales.y;
+
+                if (xPixel >= chart.chartArea.left && xPixel <= chart.chartArea.right) {
+                    const ctx = chart.ctx;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(xPixel, chart.chartArea.top);
+                    ctx.lineTo(xPixel, chart.chartArea.bottom);
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = '#10b981'; // Tailwind emerald-500
+                    ctx.setLineDash([6, 4]);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        };
+
+        const growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: days,
+                datasets: [
+                    {
+                        label: 'Total Fish Weight f(x) (g)',
+                        data: weights,
+                        borderColor: '#10b981', // emerald-500
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        yAxisID: 'y',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        tension: 0.1
+                    },
+                    {
+                        label: "Daily Growth Rate f'(x) (g/day)",
+                        data: growthRates,
+                        borderColor: '#0284c7', // sky-600
+                        borderDash: [5, 5],
+                        fill: false,
+                        yAxisID: 'yRate',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#cbd5e1', // text-slate-300
+                            font: { size: 11, family: 'sans-serif' }
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        callbacks: {
+                            title: (items) => `Production Day ${items[0].label}`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#334155' }, // slate-700
+                        ticks: { color: '#94a3b8' }, // slate-400
+                        title: { display: true, text: 'Culture Period (Days)', color: '#cbd5e1' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        grid: { color: '#1e293b' },
+                        ticks: { color: '#10b981' },
+                        title: { display: true, text: 'Total Weight (grams)', color: '#10b981' }
+                    },
+                    yRate: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: '#38bdf8' },
+                        title: { display: true, text: 'Growth Rate (grams/day)', color: '#38bdf8' }
+                    }
+                },
+                onClick: (evt, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        updateDashboard(index);
+                    }
+                }
+            },
+            plugins: [verticalLinePlugin]
+        });
+
+        function updateChartIndicator(day) {
+            growthChart.draw();
+        }
+
+        // Event Listeners for controls
+        daySlider.addEventListener('input', (e) => {
+            updateDashboard(parseInt(e.target.value));
+        });
+
+        // Loop animation parameters
+        let playInterval = null;
+        playBtn.addEventListener('click', () => {
+            if (playInterval) {
+                // Pause if running
+                clearInterval(playInterval);
+                playInterval = null;
+                playBtn.innerHTML = `<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play Cycle`;
+            } else {
+                // Play animation loop
+                let currentDay = parseInt(daySlider.value);
+                if (currentDay >= 180) currentDay = 0;
+                
+                playBtn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Pause`;
+                
+                playInterval = setInterval(() => {
+                    currentDay++;
+                    if (currentDay > 180) {
+                        currentDay = 0;
+                    }
+                    updateDashboard(currentDay);
+                }, 60); // fast dynamic animation steps
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+                playBtn.innerHTML = `<svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play Cycle`;
+            }
+            updateDashboard(80); // Reset to inflection peak (Day 80)
+        });
+
+        // Initial setup
+        window.addEventListener('load', () => {
+            updateDashboard(80);
+        });
+    </script>
+</body>
+</html>
